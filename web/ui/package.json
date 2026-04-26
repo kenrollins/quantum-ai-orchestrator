@@ -1,0 +1,18 @@
+{
+  "name": "qao-dashboard",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Phase-0 placeholder. The full Next.js dashboard scaffolds in Phase 1.",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@xyflow/react": "^12.0.0",
+    "@react-three/fiber": "^9.0.0",
+    "@react-three/drei": "^10.0.0",
+    "deck.gl": "^9.0.0",
+    "plotly.js-basic-dist": "^2.35.0",
+    "recharts": "^2.13.0",
+    "three": "^0.169.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}

@@ -30,7 +30,7 @@ dependencies = [
 
     # LLM + retrieval
     "openai>=1.40,<2",        # Ollama OpenAI-compatible client
-    "litellm>=1.40,<2",       # optional unified gateway (kaiju has it on :4000)
+    "litellm>=1.40,<2",       # optional unified gateway (host has it on :4000)
 
     # Storage + observability
     "psycopg[binary,pool]>=3.2,<4",
