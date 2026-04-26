@@ -20,7 +20,7 @@ That is tens of records per ask, not thousands. We do not need vector retrieval 
 
 Plain Postgres handles both. `valid_from / valid_to` columns + indexes give bi-temporal querying. Recursive CTEs traverse problem-graph ancestry. The audit story reads in SQL — which any technical reader and standard tools (Grafana, Metabase, psql) speak natively.
 
-Kaiju already runs a full Supabase stack at `/data/docker/supabase/`. We become a tenant: one new database (`quantum_ai_orchestrator`), per-skill schemas inside it.
+The workstation already runs a full Supabase stack at `/data/docker/supabase/`. We become a tenant: one new database (`quantum_ai_orchestrator`), per-skill schemas inside it.
 
 ## Decision
 
@@ -46,14 +46,14 @@ Kaiju already runs a full Supabase stack at `/data/docker/supabase/`. We become 
 
 ### Positive
 
-- Zero new infra on kaiju in Phase 1 — just migrations against an existing service.
+- Zero new infra on the workstation in Phase 1 — just migrations against an existing service.
 - Audit queries are plain SQL — readable by any technical reviewer; tool-friendly (Grafana/Metabase/psql).
 - Bi-temporal pattern is well-understood; many engineers can read and extend `valid_from / valid_to` schemas without learning Graphiti.
 - Per-skill schemas isolate cleanly, so adding skills 3 and 4 doesn't interact with schema 1 and 2.
 
 ### Negative / accepted trade-offs
 
-- We share a Postgres instance with other projects on kaiju. Tenancy isolation enforced by always operating scoped to the `quantum_ai_orchestrator` database; migrations are idempotent (`CREATE SCHEMA IF NOT EXISTS …`).
+- We share a Postgres instance with other projects on the workstation. Tenancy isolation enforced by always operating scoped to the `quantum_ai_orchestrator` database; migrations are idempotent (`CREATE SCHEMA IF NOT EXISTS …`).
 - If the dashboard genuinely benefits from a graph visualization later, we'll need to add Neo4j or AGE in Phase 3. The cost of adding it then is small (the data lives in Postgres; Neo4j becomes a derived view).
 - `/data/docker/supabase/.env` contains credentials we don't need. The bootstrap script reads only the Postgres-related keys; the rest stay where they are.
 

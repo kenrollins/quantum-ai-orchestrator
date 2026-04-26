@@ -14,7 +14,7 @@ Substrate today is GPUs. The pipeline is designed so QPU backends slot in unchan
 
 ## Hardware reality
 
-This project runs on **kaiju** (Dell Precision 7960):
+This project runs on a Dell Precision 7960 workstation:
 
 - 2× NVIDIA RTX 6000 Ada Generation, 48 GB each, compute cap 8.9, FP8 native
 - **No NVLink** — architectural; the RTX 6000 Ada family doesn't have it. PCIe-only across NUMA. We pivoted to *each GPU runs a different backend in parallel*, which the dashboard literalizes in the Backend Bake-off panel. See ADR-0002.
@@ -24,7 +24,7 @@ This project runs on **kaiju** (Dell Precision 7960):
 
 Full recon results: [`docs/host-setup.md`](docs/host-setup.md).
 
-## What's already on kaiju that we use as a tenant
+## What's already on the host that we use as a tenant
 
 - **Supabase** at `/data/docker/supabase/` — full self-hosted stack. We are a Postgres tenant: database `quantum_ai_orchestrator`, per-skill schemas. Connection via supavisor pooler at `localhost:5432`. See ADR-0005.
 - **Ollama** at `localhost:11434` — `gemma4:31b-it-q8_0` already pulled; this is our default Decomposer LLM. See ADR-0004.

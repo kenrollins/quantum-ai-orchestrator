@@ -40,7 +40,7 @@ This project is a sibling-in-spirit to GemmaForge, but the architecture is *not*
 
 ## 3. Hardware & Environment — Confirmed via Recon 2026-04-25
 
-**Host:** `kaiju` (Dell Precision 7960, confirmed via SSH).
+**Host:** Dell Precision 7960 workstation (confirmed via SSH).
 
 | Item | Reality |
 |---|---|
@@ -55,7 +55,7 @@ This project is a sibling-in-spirit to GemmaForge, but the architecture is *not*
 
 **No-NVLink pivot:** each GPU gets its own backend lane during a bake-off. The dashboard shows literal parallel races. Hybrid orchestration becomes visible in the hardware.
 
-**Storage strategy on kaiju (as a tenant of existing services):**
+**Storage strategy on the workstation (as a tenant of existing services):**
 - **Postgres**: be a tenant of `supabase-db`. Credentials in `/data/docker/supabase/.env` (`POSTGRES_PASSWORD`, etc.). Connect via the supavisor pooler on `localhost:5432` or `localhost:6543`. Create database `quantum_ai_orchestrator` with per-skill schemas (`qec_decode`, `mission_assignment`, `routing`, `portfolio`).
 - **Neo4j**: NOT in Phase 1 or Phase 2. If Phase 3 adds graph viz, follow the dell-vendor pattern with a project-specific `quantum-ai-orchestrator-neo4j` container on alternate ports (e.g., 7479/7689) under `/data/docker/quantum-ai-orchestrator/`.
 - **Ollama**: client of the existing daemon on `localhost:11434`. Use `gemma4:31b-it-q8_0` (already pulled) as the default Decomposer.
@@ -63,7 +63,7 @@ This project is a sibling-in-spirit to GemmaForge, but the architecture is *not*
 - Repo path: `/data/code/quantum-ai-orchestrator/`. Sits alongside existing `/data/code/dell-vendor-intel/`.
 
 **Software stack (pinned, opinionated):**
-- **Python 3.11.x** in a project-local `.venv` via `uv` (already on host, 0.7.19). Note: kaiju is Ubuntu 22.04 (system Python 3.10.12); this planning host is 24.04 (system Python 3.12). uv pulls a managed CPython 3.11 build regardless. **Phase-0 verifies CUDA-Q 0.9 wheels for 3.11 exist** (NVIDIA publishes 3.10/3.11/3.12); if not, drop to 3.10 with ADR-0010 documenting why.
+- **Python 3.11.x** in a project-local `.venv` via `uv` (already on host, 0.7.19). Note: the workstation is Ubuntu 22.04 (system Python 3.10.12); this planning host is 24.04 (system Python 3.12). uv pulls a managed CPython 3.11 build regardless. **Phase-0 verifies CUDA-Q 0.9 wheels for 3.11 exist** (NVIDIA publishes 3.10/3.11/3.12); if not, drop to 3.10 with ADR-0010 documenting why.
 - **CUDA-Q via container** (`nvcr.io/nvidia/cuda-quantum:0.9.x`) — driver 535 forward-compat covers CUDA 12.5+ runtime needs without touching the host driver. Aligns with the "don't touch existing Docker" rule.
 - **CUDA-Q QEC 0.6.x** — pairs with NVIDIA Ising; provides QEC backend hooks.
 - **NVIDIA Ising Decoding weights** — open weights via HuggingFace; pull via `tools/bootstrap_ising.sh` to `/data/models/nvidia-ising/` (out of repo). Speed variant (~30M params, 4 GB FP16) + accuracy variant (~120M params, 12 GB FP16).
@@ -113,7 +113,7 @@ If any fail, halt and write an ADR before proceeding.
 │   ├── adr/                         # NNNN-slug.md; copy template from gemma-forge/docs/adr/template.md
 │   ├── journal/journey/             # NN[-sub]-slug.md + STYLE.md (Andy Weir / Dan Luu / Matt Levine voice)
 │   ├── brief.md
-│   ├── host-setup.md                # kaiju recon results + supabase tenancy notes
+│   ├── host-setup.md                # workstation recon results + supabase tenancy notes
 │   └── index.md                     # mkdocs entry
 ├── orchestrator/                    # python package (the project's core)
 │   ├── pipeline/                    # the six pipeline stages — NO retry loop, NO Protocols inheritance
@@ -231,7 +231,7 @@ NL ask
 | `cutensornet` | cuTensorNet | optimization | GPU0 *or* GPU1 | 8–24 GB | 2 |
 | `pennylane_var` | pennylane-lightning-gpu | optimization | GPU0 *or* GPU1 | 12 GB | 3 |
 
-**Two-GPU racing on kaiju:** dispatcher assigns each GPU-bound backend to a specific GPU lane; both run in parallel. Visible as literal racing in the Backend Bake-off panel.
+**Two-GPU racing on the workstation:** dispatcher assigns each GPU-bound backend to a specific GPU lane; both run in parallel. Visible as literal racing in the Backend Bake-off panel.
 
 ## 7. Skills
 
@@ -315,7 +315,7 @@ These are not "nice-to-have" or "aesthetic borrowings." Each one is a load-beari
 
 ## 9. Storage and Provenance — Postgres-Only
 
-**Tenancy:** become a tenant of the existing `supabase-db` Postgres on kaiju.
+**Tenancy:** become a tenant of the existing `supabase-db` Postgres on the workstation.
 
 - **Database**: `quantum_ai_orchestrator`
 - **Schemas**: `common`, `qec_decode`, `mission_assignment`, `routing`, `portfolio` (all created day-1; Phase 2/3 schemas empty until those skills land)
@@ -404,9 +404,9 @@ SELECT * FROM ancestry;
 
 ## 10. Phased Roadmap
 
-**Phase 0 — scaffold + smoke gate.** Public GitHub repo created; Apache 2.0 LICENSE, README (no personal framing); `pyproject.toml`; `.venv` via uv; ADRs 0001 (project charter + licensing posture for code/models/data), 0002 (no-NVLink + two-GPU racing decision), 0003 (containerized CUDA-Q), 0004 (Decomposer LLM choice with bench), 0005 (Postgres-tenant of supabase, not Neo4j), 0006 (PyMatching + Stim integration), 0007 (drop-Ralph-loop architectural pivot), 0009 (visualization stack: Stim/Crumble/PyMatching/D-Wave-inspector/QuTiP/r3f). `host-setup.md` from kaiju recon. Migrations 0001–0005 applied. **All six Phase-0 numerical gates pass** AND **all five viz smoke renders produce output** (Stim SVG, PyMatching draw, dwave-inspector show, QuTiP Bloch, npm install of dashboard viz deps). Journal entry `00-origin.md` (covers the architectural-audit decisions and the visualization stack rationale). First public push. Success: `make smoke` green; repo discoverable.
+**Phase 0 — scaffold + smoke gate.** Public GitHub repo created; Apache 2.0 LICENSE, README (no personal framing); `pyproject.toml`; `.venv` via uv; ADRs 0001 (project charter + licensing posture for code/models/data), 0002 (no-NVLink + two-GPU racing decision), 0003 (containerized CUDA-Q), 0004 (Decomposer LLM choice with bench), 0005 (Postgres-tenant of supabase, not Neo4j), 0006 (PyMatching + Stim integration), 0007 (drop-Ralph-loop architectural pivot), 0009 (visualization stack: Stim/Crumble/PyMatching/D-Wave-inspector/QuTiP/r3f). `host-setup.md` from workstation recon. Migrations 0001–0005 applied. **All six Phase-0 numerical gates pass** AND **all five viz smoke renders produce output** (Stim SVG, PyMatching draw, dwave-inspector show, QuTiP Bloch, npm install of dashboard viz deps). Journal entry `00-origin.md` (covers the architectural-audit decisions and the visualization stack rationale). First public push. Success: `make smoke` green; repo discoverable.
 
-**Phase 1 — `qec_decode` + `mission_assignment` end-to-end.** Both skills complete; six backends wired; pipeline modules complete; dashboard with five Phase-1 panels; Run 1 captured to `runs/`; provenance recorded in Postgres; journey entries 01–06. **First SE-shareable demo cuts here.** Success: `bin/qao run "decode a distance-5 surface code at p=1e-3"` produces three decoder lines on the LER chart, populated dashboard, run + provenance rows in Postgres, watchable end-to-end ≤ 3 min on kaiju.
+**Phase 1 — `qec_decode` + `mission_assignment` end-to-end.** Both skills complete; six backends wired; pipeline modules complete; dashboard with five Phase-1 panels; Run 1 captured to `runs/`; provenance recorded in Postgres; journey entries 01–06. **First SE-shareable demo cuts here.** Success: `bin/qao run "decode a distance-5 surface code at p=1e-3"` produces three decoder lines on the LER chart, populated dashboard, run + provenance rows in Postgres, watchable end-to-end ≤ 3 min on the workstation.
 
 **Phase 2 — `routing` skill + cuTensorNet backend + Strategist (between-ask preference learning).** Routing skill complete; cuTensorNet for larger QAOA; Strategist as periodic Postgres job + LLM narration; deck.gl route map. Success: backend preferences in `lessons` table are non-trivial after 10 runs.
 
@@ -420,7 +420,7 @@ SELECT * FROM ancestry;
 2. **NVIDIA Ising weights license** — confirm redistribution terms before Phase 0 push. Default: bootstrap script pulls at first run; weights live at `/data/models/nvidia-ising/` (out of repo). ADR-0001 documents.
 3. **Two-GPU racing fairness** — wall-time across backends must control for warm-up; add 1-iter warm-up before timed runs or the comparison reads as cooked.
 4. **Gemma 4 31B q8 contention** — 33 GB model competing with sim VRAM. Default: pin Ollama to GPU0 (or share across both, accepting eviction); dispatch GPU-bound sim backends to whichever lane has VRAM headroom. ADR-0002 documents.
-5. **Supabase tenancy isolation** — kaiju supabase-db hosts other projects. Always operate scoped to the `quantum_ai_orchestrator` database; never `DROP` outside our schemas. Migrations are idempotent (`CREATE SCHEMA IF NOT EXISTS …`).
+5. **Supabase tenancy isolation** — the workstation's supabase-db hosts other projects. Always operate scoped to the `quantum_ai_orchestrator` database; never `DROP` outside our schemas. Migrations are idempotent (`CREATE SCHEMA IF NOT EXISTS …`).
 6. **Credential hygiene** — `/data/docker/supabase/.env` contains many secrets we don't need (Langfuse, JWT). Read only the keys we need (`POSTGRES_PASSWORD`); copy *only those* into project `.env`; never commit either. ADR-0001 documents.
 7. **Conductor Quantum positioning** — they're a YC startup adjacent to us (AI for QPU calibration; NVIDIA Ising adopter). README differentiates clearly: *we are the workload orchestrator above CUDA-Q, not a calibration product*. Phase 0 README section.
 8. **Stim + PyMatching API surface** — PyMatching 2.x changed APIs from 1.x; pin the version and integration-test in Phase 0.
@@ -448,8 +448,8 @@ This is the differentiator. Treat as a first-class concern.
 
 ## 13. First Three Concrete Tasks for the Implementing Agent
 
-1. **Initialize the public repo on kaiju.** SSH to kaiju: `mkdir -p /data/code/quantum-ai-orchestrator && cd /data/code/quantum-ai-orchestrator && git init`. Drop `LICENSE` (Apache 2.0) and a project-framed `README.md` (5 paragraphs: what / why / how to run / status / link to journey — *no personal framing in the opener*). Create the directory tree from §4. Copy `docs/adr/template.md` and `docs/journal/STYLE.md` from `/data/code/gemma-forge/` (those *files*, not other code) and adapt project name. Create the public repo on GitHub (no `dell-` prefix); push. Write **ADR-0001** (charter + licensing posture for code, models, data) and **ADR-0007** (the "drop the Ralph loop, this is a pipeline" architectural decision — link the journal entry).
-2. **Stand up Postgres tenancy.** Read `/data/docker/supabase/.env` on kaiju (`POSTGRES_PASSWORD` and connection details); copy *only* those values into project-local `.env` (gitignored). Write `migrations/0001_quantum_ai_orchestrator_db.sql` (CREATE DATABASE; `common.*` tables from §9), and `migrations/0002_qec_decode_schema.sql` through `0005_portfolio_schema.sql`. Apply via `psql` against the supavisor pooler. Write **ADR-0005** (Postgres-tenant of supabase, no Neo4j Phase 1). Verify with a `psycopg.connect()` smoke test.
+1. **Initialize the public repo on the workstation.** SSH to the workstation: `mkdir -p /data/code/quantum-ai-orchestrator && cd /data/code/quantum-ai-orchestrator && git init`. Drop `LICENSE` (Apache 2.0) and a project-framed `README.md` (5 paragraphs: what / why / how to run / status / link to journey — *no personal framing in the opener*). Create the directory tree from §4. Copy `docs/adr/template.md` and `docs/journal/STYLE.md` from `/data/code/gemma-forge/` (those *files*, not other code) and adapt project name. Create the public repo on GitHub (no `dell-` prefix); push. Write **ADR-0001** (charter + licensing posture for code, models, data) and **ADR-0007** (the "drop the Ralph loop, this is a pipeline" architectural decision — link the journal entry).
+2. **Stand up Postgres tenancy.** Read `/data/docker/supabase/.env` on the workstation (`POSTGRES_PASSWORD` and connection details); copy *only* those values into project-local `.env` (gitignored). Write `migrations/0001_quantum_ai_orchestrator_db.sql` (CREATE DATABASE; `common.*` tables from §9), and `migrations/0002_qec_decode_schema.sql` through `0005_portfolio_schema.sql`. Apply via `psql` against the supavisor pooler. Write **ADR-0005** (Postgres-tenant of supabase, no Neo4j Phase 1). Verify with a `psycopg.connect()` smoke test.
 3. **Phase-0 gate smoke (numerical + visualization).** `uv venv && uv pip install` the pinned dependencies — including the visualization libraries: `stim`, `pymatching`, `dwave-inspector`, `qutip`. Pull NVIDIA Ising Decoding weights via `tools/bootstrap_ising.sh` to `/data/models/nvidia-ising/`. Pull `nvcr.io/nvidia/cuda-quantum:0.9.x` container; verify it runs with driver 535. Run **six numerical smoke tests** under `tests/smoke/`: 12-qubit QAOA, 28-qubit QAOA, distance-5 Stim syndrome, Ising decode of that syndrome, PyMatching decode of that syndrome, Postgres connectivity. AND run **five viz smoke renders** (Stim SVG, PyMatching `draw()`, dwave-inspector `show()`, QuTiP Bloch sphere, dashboard `npm install` of viz deps). All must pass before any skill work begins. Write **ADR-0003** (containerized CUDA-Q decision), **ADR-0006** (PyMatching + Stim integration), and **ADR-0009** (visualization stack — what each library does for us, why these and not alternatives, and the Crumble iframe-vs-port deferred decision).
 
 ## Critical Files in GemmaForge to Reference (copy *shape* of the few that apply, NOT code)
@@ -462,23 +462,23 @@ This is the differentiator. Treat as a first-class concern.
 
 **Explicitly DO NOT carry over:** `gemma_forge/harness/`, `gemma_forge/memory/` (Graphiti/Neo4j), `gemma_forge/dream/`, the five-Protocol abstractions, `FailureMode`, the Ralph loop. None of these fit a pipeline architecture.
 
-## 14. Handoff: From This Planning Session to Implementation on Kaiju
+## 14. Handoff: From This Planning Session to Implementation on the Workstation
 
-This plan was authored from `/data/code/gemma-forge` on the XR7620 (Ubuntu 24.04). Implementation runs on **kaiju** (Ubuntu 22.04) in `/data/code/quantum-ai-orchestrator`. Two Claude Code instances are involved — *this one* (planning + initial scaffold) and *the next one* (implementation, started fresh by Ken on kaiju). The handoff has to be clean because the new instance has no conversation context, no auto-memory entries, and no implicit awareness of the architectural decisions we made here.
+This plan was authored from `/data/code/gemma-forge` on the XR7620 (Ubuntu 24.04). Implementation runs on the **workstation** (Ubuntu 22.04) in `/data/code/quantum-ai-orchestrator`. Two Claude Code instances are involved — *this one* (planning + initial scaffold) and *the next one* (implementation, started fresh by Ken on the workstation). The handoff has to be clean because the new instance has no conversation context, no auto-memory entries, and no implicit awareness of the architectural decisions we made here.
 
 ### Split of work between the two instances
 
 **This instance does (after ExitPlanMode is approved):**
-1. SSH to kaiju and create `/data/code/quantum-ai-orchestrator/`.
+1. SSH to the workstation and create `/data/code/quantum-ai-orchestrator/`.
 2. `git init` and add the bootstrap files: `LICENSE` (Apache 2.0), `README.md` (no personal framing), `CLAUDE.md` (handoff context — see below), `docs/plan.md` (this entire plan, copied verbatim), `docs/adr/template.md` (copied from gemma-forge), `docs/journal/STYLE.md` (copied from gemma-forge), `docs/journal/journey/00-origin.md` (initial entry telling the story of how this plan came to be), `pyproject.toml` (with deps listed but not yet installed), `Makefile` (with stub targets), `.gitignore`, `mkdocs.yml`, the empty directory tree from §4 with `__init__.py` placeholders.
 3. Create the public `kenrollins/quantum-ai-orchestrator` repo on GitHub via `gh repo create`. Push the bootstrap.
-4. Read `/data/docker/supabase/.env` on kaiju and write the project-local `.env` with *only* the credentials the orchestrator needs (`POSTGRES_PASSWORD`, `POSTGRES_HOST=localhost`, `POSTGRES_PORT=5432`, `POSTGRES_USER=postgres`). Add `.env` to `.gitignore`. Document in `CLAUDE.md` and ADR-0001.
+4. Read `/data/docker/supabase/.env` on the workstation and write the project-local `.env` with *only* the credentials the orchestrator needs (`POSTGRES_PASSWORD`, `POSTGRES_HOST=localhost`, `POSTGRES_PORT=5432`, `POSTGRES_USER=postgres`). Add `.env` to `.gitignore`. Document in `CLAUDE.md` and ADR-0001.
 5. Apply `migrations/0001_quantum_ai_orchestrator_db.sql` (creates database + `common.*` tables) and `migrations/0002`–`0005` (per-skill schemas). Verify with `psycopg.connect()` smoke.
-6. Stop. Tell Ken to switch to kaiju.
+6. Stop. Tell Ken to switch to the workstation.
 
-**This instance does NOT:** install Python deps, pull containers, pull model weights, run smoke tests, or write any pipeline code. All of that benefits from running natively on kaiju (faster, no SSH lag, real GPU access).
+**This instance does NOT:** install Python deps, pull containers, pull model weights, run smoke tests, or write any pipeline code. All of that benefits from running natively on the workstation (faster, no SSH lag, real GPU access).
 
-**Next instance (Ken on kaiju) does:**
+**Next instance (Ken on the workstation) does:**
 1. Open Claude Code in `/data/code/quantum-ai-orchestrator/`. The new instance auto-loads `CLAUDE.md` and the plan.
 2. Execute Phase-0 install steps: `uv venv --python 3.11 && uv pip install ...`, pull `nvcr.io/nvidia/cuda-quantum:0.9.x`, run `tools/bootstrap_ising.sh`, run all 11 smoke tests (6 numerical + 5 viz), commit logs to `runs/smoke/`.
 3. Write ADRs 0002–0010 as the actual environment confirms or refutes assumptions.
@@ -489,8 +489,8 @@ This plan was authored from `/data/code/gemma-forge` on the XR7620 (Ubuntu 24.04
 Single document, markdown, ~300 lines max. Sections:
 - **What this project is** (one paragraph, lifted from §1 of plan)
 - **Where the plan lives** (`docs/plan.md` — read it before doing anything)
-- **Hardware reality** (kaiju Dell Precision 7960, 2× RTX 6000 Ada, no NVLink — link to `docs/host-setup.md`)
-- **What's already on kaiju that we use as a tenant** (Supabase Postgres, Ollama, optionally litellm; NOT the host Neo4j)
+- **Hardware reality** (Dell Precision 7960 workstation, 2× RTX 6000 Ada, no NVLink — link to `docs/host-setup.md`)
+- **What's already on the workstation that we use as a tenant** (Supabase Postgres, Ollama, optionally litellm; NOT the host Neo4j)
 - **Architectural decisions already locked** (pipeline not loop, Postgres-only Phase 1–2, Gemma 4 31B Decomposer, two-GPU racing, six pipeline modules in `orchestrator/pipeline/`)
 - **What we explicitly DID NOT carry over from gemma-forge** (Ralph loop, five Protocols, FailureMode, Reflector, Graphiti+Neo4j, dream pass framework — see ADR-0007)
 - **Phase 0 task list** (the 11 gate tests + ADRs to write)
@@ -509,7 +509,7 @@ The point of writing 00 with the bootstrap (not later) is two-fold: (a) lock the
 ### What Ken does to switch hosts
 
 ```bash
-# On kaiju, after the bootstrap is pushed:
+# On the workstation, after the bootstrap is pushed:
 cd /data/code/quantum-ai-orchestrator
 claude   # starts Claude Code; auto-loads CLAUDE.md
 ```
@@ -518,7 +518,7 @@ First prompt to the new instance: *"Read CLAUDE.md and docs/plan.md. Pick up at 
 
 ### What does NOT carry over (and why that's OK)
 
-- **Auto-memory from `/home/rollik/.claude/projects/-data-code-gemma-forge/memory/`** — these live in this host's filesystem, not kaiju's. The user-level memories (Ken's preferences, journal-voice rules, ADR discipline, narrative-framing instinct) will *re-accrue* on kaiju as we work. The project-specific memories (gemma-forge phase status, Triton version gap, etc.) shouldn't carry — they don't apply.
+- **Auto-memory from `/home/rollik/.claude/projects/-data-code-gemma-forge/memory/`** — these live in this host's filesystem, not the workstation's. The user-level memories (Ken's preferences, journal-voice rules, ADR discipline, narrative-framing instinct) will *re-accrue* on the workstation as we work. The project-specific memories (gemma-forge phase status, Triton version gap, etc.) shouldn't carry — they don't apply.
 - **Conversation history of this planning session** — captured in `docs/plan.md` and `docs/journal/journey/00-origin.md`. Anything not captured there is, by construction, not load-bearing for implementation.
 - **The ChatGPT session that started this** — Ken's notes from the mobile session. Not authoritative; explicitly framed that way at the start.
 

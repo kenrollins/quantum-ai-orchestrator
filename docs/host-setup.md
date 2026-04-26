@@ -1,4 +1,4 @@
-# Host setup — kaiju
+# Host setup
 
 Recon results from 2026-04-25, captured during planning. Re-verify any claim before relying on it; this is a snapshot.
 
@@ -34,7 +34,7 @@ $ nvidia-smi nvlink --capabilities  # empty output
 
 GPUs at PCIe addresses `0000:ac:00.0` (GPU0) and `0000:ca:00.0` (GPU1), connected only via Intel PCIe bridges.
 
-## Already-running services on kaiju
+## Already-running services on the host
 
 The host is busy. We are tenants of these existing services:
 

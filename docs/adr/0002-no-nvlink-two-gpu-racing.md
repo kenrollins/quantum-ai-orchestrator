@@ -6,7 +6,7 @@
 
 ## Context
 
-The planning assumption was NVLink between the two GPUs in kaiju (Dell Precision 7960). NVLink would have allowed peer-to-peer VRAM pooling and pushed multi-GPU statevector simulation from ~30 qubits to ~33 qubits. The previous-generation NVIDIA RTX A6000 supported NVLink via an optional bridge, which is what the assumption was based on.
+The planning assumption was NVLink between the two GPUs in the workstation (Dell Precision 7960). NVLink would have allowed peer-to-peer VRAM pooling and pushed multi-GPU statevector simulation from ~30 qubits to ~33 qubits. The previous-generation NVIDIA RTX A6000 supported NVLink via an optional bridge, which is what the assumption was based on.
 
 The recon was definitive on two fronts:
 
