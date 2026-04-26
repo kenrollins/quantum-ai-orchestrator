@@ -16,27 +16,15 @@
 
 **Public from day one:** Apache 2.0 license (matches NVIDIA Ising, Stim, PyMatching, CUDA-Q). README is part of Phase 0. No `dell-` prefix in the repo name (README does the Dell positioning). No personal-flavored framing in the README opener — lead with what the project *is*, not who built it.
 
-## 2. Architectural Audit — What We Inherit, What We Drop
+## 2. Architectural Shape
 
-This project is a sibling-in-spirit to GemmaForge, but the architecture is *not* a copy. Honest audit:
+This is a **pipeline**, not a retry loop. A natural-language ask passes through six stages exactly once: Decomposer → Formulator → Dispatcher → Backends (in parallel) → Evaluator → Reassembler. A backend losing the race is not a failure — it is data. Learning happens between asks (via the Strategist), not within.
 
-**Carry over from gemma-forge:**
-- Repo layout convention (`bin/ docs/ infra/ skills/ tests/ web/`)
-- ADR discipline + journey voice (Andy Weir / Dan Luu / Matt Levine)
-- Dashboard scaffolding (Next.js 16 + React Flow + Tailwind + SSE from FastAPI replay)
-- Skills-as-folders organization (one per problem class)
-- Run logging as JSONL in `runs/` for replay
-
-**Drop from gemma-forge** (it doesn't fit a pipeline architecture):
-- The Ralph retry/reflect loop — we don't try-fail-reflect-retry; we decompose-dispatch-race-record once
-- The five Protocols (`WorkQueue / Executor / Evaluator / Checkpoint / WorkItem`) — Checkpoint has no rollback semantics here; the others reshape into pipeline stages
-- `FailureMode` enum — we score outcomes, we don't categorize failures
-- Reflector / banned-approaches — we learn *positive* preferences, not bans
-- Working-tier memory — no within-task iterative attempts to remember
-- **Graphiti + Neo4j** — overkill for our load (~10–100 dispatch records per run, no vector retrieval). Postgres handles bi-temporal queries via `valid_from / valid_to`. Audit queries are SQL.
-- Dream pass as a framework — becomes a periodic Postgres job in Phase 2
-
-**Net result:** roughly 300 lines of inherited harness code we'd never use are skipped. The orchestrator/ module is a clean pipeline of six modules, not a retry-loop framework.
+Key constraints:
+- **No rollback semantics.** Each ask is one pass; there is no mid-task recovery.
+- **Postgres for provenance.** Bi-temporal `valid_from / valid_to` columns; audit queries are SQL. No graph database in Phase 1–2.
+- **Scored outcomes, not categorized failures.** We learn positive preferences, not bans.
+- **Skills are thin.** Each skill provides three Python functions and some markdown — no protocol inheritance.
 
 ## 3. Hardware & Environment — Confirmed via Recon 2026-04-25
 
@@ -446,85 +434,11 @@ This is the differentiator. Treat as a first-class concern.
 - **Strategist learning target (Phase 2).** Which decoder for which `(distance, p)` regime. Materialized as rows in `common.lessons`.
 - **Honest demo framing.** No real QPU = no real-time decoding loop. The demo is **offline batch decoding of simulated syndromes**. State that in the dashboard footer.
 
-## 13. First Three Concrete Tasks for the Implementing Agent
+## 13. Implementation Sequence
 
-1. **Initialize the public repo on the workstation.** SSH to the workstation: `mkdir -p /data/code/quantum-ai-orchestrator && cd /data/code/quantum-ai-orchestrator && git init`. Drop `LICENSE` (Apache 2.0) and a project-framed `README.md` (5 paragraphs: what / why / how to run / status / link to journey — *no personal framing in the opener*). Create the directory tree from §4. Copy `docs/adr/template.md` and `docs/journal/STYLE.md` from `/data/code/gemma-forge/` (those *files*, not other code) and adapt project name. Create the public repo on GitHub (no `dell-` prefix); push. Write **ADR-0001** (charter + licensing posture for code, models, data) and **ADR-0007** (the "drop the Ralph loop, this is a pipeline" architectural decision — link the journal entry).
-2. **Stand up Postgres tenancy.** Read `/data/docker/supabase/.env` on the workstation (`POSTGRES_PASSWORD` and connection details); copy *only* those values into project-local `.env` (gitignored). Write `migrations/0001_quantum_ai_orchestrator_db.sql` (CREATE DATABASE; `common.*` tables from §9), and `migrations/0002_qec_decode_schema.sql` through `0005_portfolio_schema.sql`. Apply via `psql` against the supavisor pooler. Write **ADR-0005** (Postgres-tenant of supabase, no Neo4j Phase 1). Verify with a `psycopg.connect()` smoke test.
-3. **Phase-0 gate smoke (numerical + visualization).** `uv venv && uv pip install` the pinned dependencies — including the visualization libraries: `stim`, `pymatching`, `dwave-inspector`, `qutip`. Pull NVIDIA Ising Decoding weights via `tools/bootstrap_ising.sh` to `/data/models/nvidia-ising/`. Pull `nvcr.io/nvidia/cuda-quantum:0.9.x` container; verify it runs with driver 535. Run **six numerical smoke tests** under `tests/smoke/`: 12-qubit QAOA, 28-qubit QAOA, distance-5 Stim syndrome, Ising decode of that syndrome, PyMatching decode of that syndrome, Postgres connectivity. AND run **five viz smoke renders** (Stim SVG, PyMatching `draw()`, dwave-inspector `show()`, QuTiP Bloch sphere, dashboard `npm install` of viz deps). All must pass before any skill work begins. Write **ADR-0003** (containerized CUDA-Q decision), **ADR-0006** (PyMatching + Stim integration), and **ADR-0009** (visualization stack — what each library does for us, why these and not alternatives, and the Crumble iframe-vs-port deferred decision).
-
-## Critical Files in GemmaForge to Reference (copy *shape* of the few that apply, NOT code)
-
-- `/data/code/gemma-forge/docs/adr/template.md` — ADR shape and frontmatter
-- `/data/code/gemma-forge/docs/journal/STYLE.md` — voice rules
-- `/data/code/gemma-forge/docker-compose.yml` — profile pattern, client-of-host-services convention
-- `/data/code/gemma-forge/web/api/serve_replay.py` — FastAPI SSE shape
-- `/data/code/gemma-forge/web/ui/` — Next.js + React Flow dashboard skeleton
-
-**Explicitly DO NOT carry over:** `gemma_forge/harness/`, `gemma_forge/memory/` (Graphiti/Neo4j), `gemma_forge/dream/`, the five-Protocol abstractions, `FailureMode`, the Ralph loop. None of these fit a pipeline architecture.
-
-## 14. Handoff: From This Planning Session to Implementation on the Workstation
-
-This plan was authored from `/data/code/gemma-forge` on the XR7620 (Ubuntu 24.04). Implementation runs on the **workstation** (Ubuntu 22.04) in `/data/code/quantum-ai-orchestrator`. Two Claude Code instances are involved — *this one* (planning + initial scaffold) and *the next one* (implementation, started fresh by Ken on the workstation). The handoff has to be clean because the new instance has no conversation context, no auto-memory entries, and no implicit awareness of the architectural decisions we made here.
-
-### Split of work between the two instances
-
-**This instance does (after ExitPlanMode is approved):**
-1. SSH to the workstation and create `/data/code/quantum-ai-orchestrator/`.
-2. `git init` and add the bootstrap files: `LICENSE` (Apache 2.0), `README.md` (no personal framing), `CLAUDE.md` (handoff context — see below), `docs/plan.md` (this entire plan, copied verbatim), `docs/adr/template.md` (copied from gemma-forge), `docs/journal/STYLE.md` (copied from gemma-forge), `docs/journal/journey/00-origin.md` (initial entry telling the story of how this plan came to be), `pyproject.toml` (with deps listed but not yet installed), `Makefile` (with stub targets), `.gitignore`, `mkdocs.yml`, the empty directory tree from §4 with `__init__.py` placeholders.
-3. Create the public `kenrollins/quantum-ai-orchestrator` repo on GitHub via `gh repo create`. Push the bootstrap.
-4. Read `/data/docker/supabase/.env` on the workstation and write the project-local `.env` with *only* the credentials the orchestrator needs (`POSTGRES_PASSWORD`, `POSTGRES_HOST=localhost`, `POSTGRES_PORT=5432`, `POSTGRES_USER=postgres`). Add `.env` to `.gitignore`. Document in `CLAUDE.md` and ADR-0001.
-5. Apply `migrations/0001_quantum_ai_orchestrator_db.sql` (creates database + `common.*` tables) and `migrations/0002`–`0005` (per-skill schemas). Verify with `psycopg.connect()` smoke.
-6. Stop. Tell Ken to switch to the workstation.
-
-**This instance does NOT:** install Python deps, pull containers, pull model weights, run smoke tests, or write any pipeline code. All of that benefits from running natively on the workstation (faster, no SSH lag, real GPU access).
-
-**Next instance (Ken on the workstation) does:**
-1. Open Claude Code in `/data/code/quantum-ai-orchestrator/`. The new instance auto-loads `CLAUDE.md` and the plan.
-2. Execute Phase-0 install steps: `uv venv --python 3.11 && uv pip install ...`, pull `nvcr.io/nvidia/cuda-quantum:0.9.x`, run `tools/bootstrap_ising.sh`, run all 11 smoke tests (6 numerical + 5 viz), commit logs to `runs/smoke/`.
-3. Write ADRs 0002–0010 as the actual environment confirms or refutes assumptions.
-4. Begin Phase 1 work (qec_decode + mission_assignment skills).
-
-### `CLAUDE.md` contents (committed at repo root, day-1)
-
-Single document, markdown, ~300 lines max. Sections:
-- **What this project is** (one paragraph, lifted from §1 of plan)
-- **Where the plan lives** (`docs/plan.md` — read it before doing anything)
-- **Hardware reality** (Dell Precision 7960 workstation, 2× RTX 6000 Ada, no NVLink — link to `docs/host-setup.md`)
-- **What's already on the workstation that we use as a tenant** (Supabase Postgres, Ollama, optionally litellm; NOT the host Neo4j)
-- **Architectural decisions already locked** (pipeline not loop, Postgres-only Phase 1–2, Gemma 4 31B Decomposer, two-GPU racing, six pipeline modules in `orchestrator/pipeline/`)
-- **What we explicitly DID NOT carry over from gemma-forge** (Ralph loop, five Protocols, FailureMode, Reflector, Graphiti+Neo4j, dream pass framework — see ADR-0007)
-- **Phase 0 task list** (the 11 gate tests + ADRs to write)
-- **Where the credentials are** (project `.env`; how it was derived from supabase .env)
-- **The journey discipline** (predicament-first; see `docs/journal/STYLE.md`)
-- **What "done" looks like for Phase 0 and Phase 1** (lifted from §15 verification criteria)
-
-The next Claude Code instance reads `CLAUDE.md`, opens `docs/plan.md` for the full picture, and starts executing Phase 0 step 2 onward without re-deriving any decisions.
-
-### `docs/journal/journey/00-origin.md`
-
-Lands with the bootstrap commit. Predicament-first — opens with *"Dell Federal needs an AI + quantum talk track. There is no QPU. There is GPU. The harness from gemma-forge does not fit, and figuring out what fits instead took a planning session that touched fourteen architectural decisions."* — then walks through the key decisions in compressed form: pipeline-not-loop, Postgres-only, Gemma 4 over Nemotron, two-GPU racing, the visualization stack as load-bearing not aesthetic, the no-personal-framing rule, the Conductor Quantum naming collision avoided, and ends with what we're about to try in Phase 0.
-
-The point of writing 00 with the bootstrap (not later) is two-fold: (a) lock the *why* before any code obscures it, and (b) give the next Claude Code instance a narrative pickup that auto-memory can't.
-
-### What Ken does to switch hosts
-
-```bash
-# On the workstation, after the bootstrap is pushed:
-cd /data/code/quantum-ai-orchestrator
-claude   # starts Claude Code; auto-loads CLAUDE.md
-```
-
-First prompt to the new instance: *"Read CLAUDE.md and docs/plan.md. Pick up at Phase 0 step 2 — Python venv setup, dependency install, container pull, smoke gate."* The new instance will scan the existing scaffold, recognize Phase 0 partial completion (repo + Postgres done; deps + smokes pending), and execute the rest.
-
-### What does NOT carry over (and why that's OK)
-
-- **Auto-memory from `/home/rollik/.claude/projects/-data-code-gemma-forge/memory/`** — these live in this host's filesystem, not the workstation's. The user-level memories (Ken's preferences, journal-voice rules, ADR discipline, narrative-framing instinct) will *re-accrue* on the workstation as we work. The project-specific memories (gemma-forge phase status, Triton version gap, etc.) shouldn't carry — they don't apply.
-- **Conversation history of this planning session** — captured in `docs/plan.md` and `docs/journal/journey/00-origin.md`. Anything not captured there is, by construction, not load-bearing for implementation.
-- **The ChatGPT session that started this** — Ken's notes from the mobile session. Not authoritative; explicitly framed that way at the start.
-
-### `docs/plan.md` and this plan file
-
-This plan file (`/home/rollik/.claude/plans/mighty-percolating-puddle.md`) gets copied verbatim to `docs/plan.md` in the new repo as part of the bootstrap. It is the canonical reference for the next instance. Subsequent edits go directly to `docs/plan.md` (not back to this temp plan file).
+1. **Repo scaffold.** Apache 2.0 LICENSE, README, directory tree from §4, ADR template, journal STYLE.md. Public GitHub repo.
+2. **Postgres tenancy.** Create `quantum_ai_orchestrator` database via `migrations/0001`, apply schema migrations 0002–0005. Write ADR-0005.
+3. **Phase-0 gate (11 tests).** Python venv via uv, CUDA-Q container pull, NVIDIA Ising weights pull, six numerical smoke tests + five visualization smoke renders. All must pass before skill work begins. Write ADRs for each verified integration (CUDA-Q, Stim+PyMatching, visualization stack).
 
 ## Verification
 
