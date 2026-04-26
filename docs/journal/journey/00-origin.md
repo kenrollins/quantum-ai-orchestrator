@@ -19,48 +19,51 @@ Phase 0 is a recon-and-scaffold pass. Five findings against the substrate, and w
 
 ## The two GPUs do not have NVLink
 
-The planning assumption was NVLink between the two cards. The previous-generation RTX A6000 supported it via an optional bridge; the workstation's cards do not. The recon was unambiguous:
+The RTX 6000 Ada Generation does not include NVLink — NVIDIA removed it from the Ada-generation workstation silicon. The two GPUs communicate only via PCIe:
 
 ```
-$ nvidia-smi nvlink --status        # empty output
-$ nvidia-smi nvlink --capabilities  # empty output
 $ nvidia-smi topo -m
-       GPU0  GPU1  CPU Affinity ...
-GPU0   X     SYS   ...
-GPU1   SYS   X     ...
+        GPU0    GPU1    CPU Affinity    NUMA Affinity
+GPU0     X      SYS     0-111           0
+GPU1    SYS     X       0-111           0
 ```
 
-`SYS` indicates the link traverses PCIe and the NUMA interconnect. NVIDIA's datasheet confirms what the topology output suggests: NVLink was removed from the Ada-generation workstation silicon entirely. There is no bridge to add.
+`SYS` indicates the link traverses PCIe and the NUMA interconnect. Multi-GPU statevector simulation caps at roughly 30 qubits on a single 48 GB card.
 
-The architectural consequence is a pivot from VRAM pooling to per-GPU lane assignment. Each GPU-bound backend runs on its own card; the dispatcher assigns lanes; both GPUs run different backends concurrently. Multi-GPU statevector simulation caps at roughly 30 qubits on a single 48 GB card rather than the ~33 we'd hoped for from pooling. PCIe peer-to-peer without NVLink would buy back a couple of qubits at the cost of significant orchestration complexity and roughly an order of magnitude lower bandwidth than NVLink would have provided. Not worth it.
+The architecture assigns each GPU-bound backend to its own card. The dispatcher picks lanes; both GPUs run different backends concurrently. The Backend Bake-off panel shows parallel races on distinct hardware. ADR-0002 documents the decision.
 
-!!! quote ""
-    Two GPUs racing two backends, each in its own lane, is the literal visual of hybrid orchestration. Memory pooling would have been less honest.
+## Natural language as the interface
 
-The Backend Bake-off panel in the dashboard becomes what it claims to be: parallel races on visibly distinct hardware. ADR-0002 documents the decision and the alternatives considered (PCIe pooling, cuTensorNet over host RAM, an NVLink-equipped workstation that doesn't exist in the Ada generation).
+The gap between "I need to decode a surface code at this noise rate" and "here is a syndrome tensor formatted for this specific decoder" is exactly the kind of translation an LLM handles well. The orchestrator accepts natural-language asks and uses an LLM (Gemma 4 31B) to decompose them into a typed problem graph. This serves two purposes: it lowers the barrier for exploring what the system can do, and it produces a structured representation that the rest of the pipeline can act on deterministically.
 
-## The work decomposes into a pipeline of six stages
+The Decomposer emits JSON conforming to a fixed schema. Downstream stages — Formulator, Dispatcher, backends, Evaluator, Reassembler — are pure functions over that structure. The LLM handles ambiguity at the top; everything below it is typed and auditable.
 
-A natural-language ask becomes a problem-graph DAG via a Decomposer (Gemma 4 31B with JSON-schema-constrained output). Each leaf goes to a skill-specific Formulator that emits a backend-ready input — a QUBO matrix, an Ising J/h pair, a syndrome tensor. A Dispatcher picks one or more backends per leaf from a registry, weighted by a learned-preference table in Postgres. Backends run in parallel, possibly across both GPUs and the CPU. An Evaluator scores each result for quality, wall time, and a domain-specific metric (logical error rate for QEC; objective-vs-LP-bound for optimization). A Reassembler walks the DAG bottom-up to build the parent answer. Every decision lands in a Postgres provenance log.
+## The pipeline has six stages
 
-Each ask is one pass through the six stages — Decomposer, Formulator, Dispatcher, backends, Evaluator, Reassembler. No rollback, no mid-task retries. A backend losing the race is not a failure; it is data. A Strategist process (Phase 2) reads outcomes between asks and updates the preference table, so the orchestrator learns which backends suit which problem fingerprints over time. Learning happens between asks, not within.
+Each ask is one pass through six stages:
 
-!!! quote ""
-    Six modules, one pass, scored outcomes. The architecture optimizes for observability and audit, not for mid-task recovery.
+1. **Decomposer** — LLM converts natural language to a problem-graph DAG
+2. **Formulator** — each leaf becomes a backend-ready input (QUBO matrix, Ising J/h, syndrome tensor)
+3. **Dispatcher** — picks backends from a registry, weighted by a learned-preference table
+4. **Backends** — run in parallel across GPUs and CPU
+5. **Evaluator** — scores each result for quality, wall time, and domain-specific metrics
+6. **Reassembler** — walks the DAG bottom-up to build the final answer
+
+Every decision lands in a Postgres provenance log. A backend losing the race is not a failure; it is data. A Strategist process (Phase 2) reads outcomes between asks and updates the preference table, so the orchestrator learns which backends suit which problem fingerprints over time.
 
 ## Postgres handles the provenance store
 
-The audit story is the technical-credibility story. A reasonable question from a federal evaluator or any technical reader is: *as of last Tuesday, why did we send distance-5 surface codes at p=5e-3 to the accuracy-variant decoder?* The answer has to read in something they already speak.
+When AI makes decisions — which decoder to use, which backend won the race — the reasoning should be queryable after the fact. The orchestrator records every dispatch and outcome in Postgres with bi-temporal columns (`valid_from` / `valid_to`). A query like "what was the preferred backend for distance-5 codes at p=5e-3 as of last Tuesday" is a plain SQL WHERE clause.
 
-Per ask, the orchestrator records on the order of tens of rows: one in `runs`, a small DAG in `problem_graphs`, one row per dispatched backend in `dispatches` and `outcomes`, occasionally a new row in `lessons`. There is no vector retrieval, no fulltext index over reflections, no traversal over thousands of nodes. There is bi-temporal querying — `valid_from` / `valid_to` columns answer the as-of question — and recursive ancestry traversal via a CTE over the problem graph. Plain Postgres handles both.
+Per ask, the orchestrator writes tens of rows: one in `runs`, a small DAG in `problem_graphs`, one row per dispatched backend in `dispatches` and `outcomes`, occasionally a new row in `lessons`. Recursive CTEs traverse problem-graph ancestry. Plain Postgres handles both patterns.
 
-The workstation already runs a self-hosted Supabase stack. We become a tenant: one new database (`quantum_ai_orchestrator`), per-skill schemas inside it (`common`, `qec_decode`, `mission_assignment`, `routing`, `portfolio`), connection via the supavisor pooler at `localhost:5432`. No new infrastructure to manage. Standard tools — Grafana, Metabase, psql — work day-1. ADR-0005 documents the decision and the alternatives considered (Apache AGE for Cypher-on-Postgres if the dashboard graph viz benefits in Phase 3; a standalone Postgres container; DuckDB for offline replay).
+The workstation already runs a self-hosted Supabase stack. We become a tenant: one new database (`quantum_ai_orchestrator`), per-skill schemas inside it. ADR-0005 documents the decision.
 
-## The Decomposer is Gemma 4 31B, validated rather than narrative-aligned
+## Gemma 4 31B as the Decomposer
 
-There is a federal-narrative argument for an NVIDIA-branded LLM at the orchestration layer: Nemotron Super reads as *NVIDIA throughout the stack*. The argument loses on two counts. First, NVIDIA is already throughout the *quantum* stack — Ising, CUDA-Q, cuStateVec, NVQLink — so an NVIDIA-branded Decomposer is gravy, not load-bearing. Second, we have prior hands-on validation of `gemma4:31b-it-q8_0` for tool use and JSON-schema-constrained output. Apache 2.0 weights also avoid the friction of the NVIDIA Open Model License for a public repo.
+The Decomposer needs to emit valid JSON conforming to a fixed schema, every time. `gemma4:31b-it-q8_0` has prior validation for tool use and JSON-constrained output. It runs locally on Ollama, fits in ~34 GB VRAM (leaving headroom on the 48 GB cards), and is Apache 2.0 licensed.
 
-Phase 0 still benches Kimi K2.6, DeepSeek-R1, and Nemotron Super on a fixed prompt suite as a sanity check. Gemma 4 31B is the incumbent. ADR-0004 will lock or break the tie based on actual numbers from `tools/bench_decomposers.sh`.
+Phase 0 benchmarks five candidate models on a fixed prompt suite covering all four problem classes. ADR-0004 documents the results — Gemma 4 was the only model at 100% JSON validity with ≥80% schema compliance.
 
 ## The visualization stack is load-bearing
 

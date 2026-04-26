@@ -14,7 +14,7 @@ related:
 one_line: "Phase 0 verified the substrate: all eleven smoke tests pass, CUDA-Q runs containerized with driver 535, Gemma 4 31B wins the decomposer bench at 100% JSON validity, and the Ising predecoder required cloning NVIDIA's inference repo rather than finding it inside the CUDA-Q container."
 ---
 
-The planning assumption was that Phase 0 would be a two-hour install pass — pull containers, install wheels, run tests, write ADRs. It took most of a day. The substrate held, but the details of *how* each piece runs were different enough from the plan that six ADRs needed writing.
+Phase 0 verified the substrate: container execution, model weights, dependency installation, and eleven smoke tests. The details of how each piece integrates were different enough from the plan that six ADRs needed writing.
 
 ## The eleven gates
 
