@@ -1,0 +1,71 @@
+# Dashboard panel registry.
+# Each skill ships a UI module in skills/<name>/ui/<PanelName>.tsx;
+# adding a new skill = adding a panel module + registering it here.
+
+panels:
+  - id: problem_graph
+    component: ProblemGraph
+    library: react-flow
+    consumes_events: [problem_graph_node, problem_graph_edge, problem_graph_solved]
+    phase: 1
+
+  - id: backend_bake_off
+    component: BackendRace
+    library: recharts
+    consumes_events: [backend_started, backend_progress, backend_finished]
+    phase: 1
+
+  - id: qec_lab
+    component: QecLab
+    libraries: [stim_svg, pymatching_draw, crumble, recharts]
+    consumes_events: [syndrome_emitted, decoder_correction, ler_update, lattice_state]
+    phase: 1
+    skill: qec_decode
+
+  - id: bipartite_assignment
+    component: AssignmentBipartite
+    library: react-flow
+    consumes_events: [domain_update]
+    phase: 1
+    skill: mission_assignment
+
+  - id: qubo_graph
+    component: QuboGraph
+    library: dwave-inspector
+    consumes_events: [qubo_built, qubo_state_update]
+    phase: 1
+    skills: [mission_assignment, routing, portfolio]
+
+  - id: provenance
+    component: ProvenancePanel
+    library: postgres-recursive-cte
+    consumes_events: [lesson_learned, dispatch_recorded]
+    phase: 1
+
+  - id: quantum_visualizer
+    component: QuantumViz
+    libraries: [react-three-fiber, drei, qutip-server-png]
+    consumes_events: [statevector_snapshot, qaoa_layer]
+    phase: 1
+
+  - id: route_map
+    component: RouteMap
+    library: deck.gl
+    consumes_events: [domain_update]
+    phase: 2
+    skill: routing
+
+  - id: efficient_frontier
+    component: EfficientFrontier
+    library: plotly.js
+    consumes_events: [domain_update]
+    phase: 3
+    skill: portfolio
+
+# Outcome status colors used by panels (Tailwind palette).
+status_colors:
+  succeeded: "#22C55E"
+  partial:   "#EAB308"
+  failed:    "#EF4444"
+  running:   "#3B82F6"
+  skipped:   "#6B7280"

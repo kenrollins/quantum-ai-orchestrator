@@ -1,0 +1,33 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+build/
+dist/
+
+# Node / Next.js
+web/ui/node_modules/
+web/ui/.next/
+web/ui/out/
+
+# Project-local environment
+.env
+.env.local
+*.local.env
+
+# Runtime data
+runs/
+memory/
+
+# Models (huge, pulled at first run)
+/data/models/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Site builds
+site/

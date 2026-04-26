@@ -1,0 +1,83 @@
+# Backend registry. Locked schema for all 8 backend types day-1.
+# See docs/plan.md §6 for the full backend matrix.
+#
+# Phase 1 ships entries marked phase: 1.
+# Phase 2 unlocks cuTensorNet. Phase 3 unlocks PennyLane.
+
+backends:
+  - name: classical_ortools
+    class: classical
+    library: "ortools>=9.11"
+    applicable_problem_classes: [qubo_assignment, qubo_routing, qubo_portfolio]
+    gpu_required: false
+    footprint_gb: 0
+    latency_target_ms: 5000
+    phase: 1
+
+  - name: neal
+    class: quantum_inspired_annealing
+    library: "dwave-neal>=0.6"
+    applicable_problem_classes: [qubo_assignment, qubo_routing, qubo_portfolio]
+    gpu_required: false
+    footprint_gb: 0
+    latency_target_ms: 10000
+    phase: 1
+
+  - name: cudaq_qaoa
+    class: gate_model_simulation
+    library: "cudaq>=0.9"
+    applicable_problem_classes: [qubo_assignment, qubo_routing, qubo_portfolio]
+    gpu_required: true
+    gpu_lane: any
+    footprint_gb: 32
+    latency_target_ms: 60000
+    phase: 1
+
+  - name: ising_speed
+    class: ai_decoder
+    library: "nvidia-ising-decoding (speed variant, ~30M params)"
+    applicable_problem_classes: [qec_syndrome]
+    gpu_required: true
+    gpu_lane: any
+    footprint_gb: 4
+    latency_target_ms: 50
+    phase: 1
+
+  - name: ising_accuracy
+    class: ai_decoder
+    library: "nvidia-ising-decoding (accuracy variant, ~120M params)"
+    applicable_problem_classes: [qec_syndrome]
+    gpu_required: true
+    gpu_lane: any
+    footprint_gb: 12
+    latency_target_ms: 200
+    phase: 1
+
+  - name: pymatching
+    class: classical_decoder
+    library: "pymatching>=2.2"
+    applicable_problem_classes: [qec_syndrome]
+    gpu_required: false
+    footprint_gb: 0
+    latency_target_ms: 200
+    phase: 1
+
+  - name: cutensornet
+    class: tensor_network_simulation
+    library: "cuquantum-python (cuTensorNet)"
+    applicable_problem_classes: [qubo_assignment, qubo_routing, qubo_portfolio]
+    gpu_required: true
+    gpu_lane: any
+    footprint_gb: 24
+    latency_target_ms: 90000
+    phase: 2
+
+  - name: pennylane_var
+    class: variational_simulation
+    library: "pennylane-lightning-gpu>=0.39"
+    applicable_problem_classes: [qubo_assignment, qubo_routing, qubo_portfolio]
+    gpu_required: true
+    gpu_lane: any
+    footprint_gb: 12
+    latency_target_ms: 60000
+    phase: 3

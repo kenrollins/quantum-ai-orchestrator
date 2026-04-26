@@ -1,0 +1,43 @@
+site_name: quantum-ai-orchestrator
+site_description: An AI-orchestrated control plane for hybrid quantum-classical workloads
+repo_url: https://github.com/kenrollins/quantum-ai-orchestrator
+repo_name: kenrollins/quantum-ai-orchestrator
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: deep purple
+      accent: cyan
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - content.code.copy
+    - content.tabs.link
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - tables
+  - footnotes
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Plan: plan.md
+  - Host setup: host-setup.md
+  - Architecture decisions:
+      - ADR template: adr/template.md
+      - "0001 — Charter and licensing": adr/0001-charter-and-licensing.md
+      - "0002 — No NVLink, two-GPU racing": adr/0002-no-nvlink-two-gpu-racing.md
+      - "0005 — Postgres tenant, no Neo4j": adr/0005-postgres-tenant-no-neo4j.md
+  - Journey:
+      - Style guide: journal/STYLE.md
+      - "00 — Origin": journal/journey/00-origin.md

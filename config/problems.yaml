@@ -1,0 +1,42 @@
+# Demo problem catalog. Each entry is a canned ask the dashboard can replay.
+
+problems:
+  - id: qec_d5_p1e3
+    skill: qec_decode
+    ask: "decode a distance-5 surface code at p=1e-3"
+    params:
+      distance: 5
+      noise_rate: 1.0e-3
+      shots: 1000
+    phase: 1
+
+  - id: qec_d3_sweep
+    skill: qec_decode
+    ask: "sweep depolarizing noise from 1e-4 to 1e-2 on a distance-3 surface code"
+    params:
+      distance: 3
+      noise_rate_min: 1.0e-4
+      noise_rate_max: 1.0e-2
+      noise_rate_steps: 10
+      shots: 500
+    phase: 1
+
+  - id: assignment_12x8_K3
+    skill: mission_assignment
+    ask: "assign 12 assets across 8 tasks with capacity constraint K=3"
+    params:
+      assets: 12
+      tasks: 8
+      capacity: 3
+      seed: 42
+    phase: 1
+
+  - id: assignment_24x16_K4
+    skill: mission_assignment
+    ask: "assign 24 assets across 16 tasks with capacity constraint K=4"
+    params:
+      assets: 24
+      tasks: 16
+      capacity: 4
+      seed: 42
+    phase: 1
