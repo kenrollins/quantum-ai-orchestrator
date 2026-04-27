@@ -33,9 +33,11 @@ CONTAINER_IMAGE = "nvcr.io/nvidia/quantum/cuda-quantum:cu12-0.9.1"
 WORKER_DIR = Path(__file__).resolve().parents[3] / "infra" / "cudaq-worker"
 WORKER_SCRIPT_IN_CONTAINER = "/work/qaoa_worker.py"
 
-DEFAULT_NUM_LAYERS = 3
-DEFAULT_NUM_SHOTS = 1000
-DEFAULT_TIMEOUT_S = 120
+DEFAULT_NUM_LAYERS = 5
+DEFAULT_NUM_SHOTS = 2000
+DEFAULT_NUM_RESTARTS = 4
+DEFAULT_MAX_ITERATIONS = 150
+DEFAULT_TIMEOUT_S = 240
 
 
 def _build_docker_cmd(gpu_lane: int | None) -> list[str]:
@@ -79,6 +81,8 @@ def run(
         "qubo": np.asarray(qubo_matrix, dtype=float).tolist(),
         "num_layers": int(config.get("num_layers", DEFAULT_NUM_LAYERS)),
         "num_shots": int(config.get("num_shots", DEFAULT_NUM_SHOTS)),
+        "num_restarts": int(config.get("num_restarts", DEFAULT_NUM_RESTARTS)),
+        "max_iterations": int(config.get("max_iterations", DEFAULT_MAX_ITERATIONS)),
         "seed": int(config.get("seed", 42)),
     }
 

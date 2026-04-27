@@ -48,7 +48,7 @@ def _generate_cost_matrix(
 def _build_qubo(
     cost_matrix: np.ndarray,
     capacity: int,
-    penalty_scale: float = 100.0,
+    penalty_scale: float | None = None,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     """Build QUBO matrix for assignment problem.
 
@@ -60,16 +60,26 @@ def _build_qubo(
     - Each task assigned exactly once: sum_i x[i,j] = 1
     - Each asset at most 'capacity' tasks: sum_j x[i,j] <= capacity
 
+    Penalty scaling:
+        If penalty_scale is None, we set it to 2 * max(cost_matrix). The standard
+        Lubin/Lucas rule of thumb: a Lagrangian penalty must dominate any savings
+        from violating the constraint. Otherwise QAOA / annealing optimizers
+        find low-energy infeasible solutions. With penalty=2*max_cost the worst
+        per-constraint violation gradient still beats the best assignment-cost
+        gradient, so feasibility is genuinely the lowest-energy region.
+
     Args:
         cost_matrix: Assignment costs (num_assets, num_tasks).
         capacity: Max tasks per asset.
-        penalty_scale: Lagrange multiplier for constraints.
+        penalty_scale: Lagrange multiplier; auto-scaled when None.
 
     Returns:
         Tuple of (QUBO matrix, metadata dict).
     """
     num_assets, num_tasks = cost_matrix.shape
     num_vars = num_assets * num_tasks
+    if penalty_scale is None:
+        penalty_scale = 2.0 * float(np.max(cost_matrix))
 
     # Initialize QUBO (upper triangular)
     Q = np.zeros((num_vars, num_vars))
