@@ -1,0 +1,68 @@
+.empty {
+  color: var(--text-dim);
+  font-style: italic;
+  padding: 100px 0;
+  text-align: center;
+}
+
+.runHeader { margin-bottom: 24px; }
+.runHeader h1 {
+  margin: 0 0 8px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.runHeader .metaRow {
+  display: flex;
+  gap: 16px;
+  color: var(--text-dim);
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.runHeader .runId {
+  font-family: ui-monospace, "JetBrains Mono", Menlo, Consolas, monospace;
+  color: var(--text-dim);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.panel .paramsLine {
+  color: var(--text-dim);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+
+.metricGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.metric {
+  background: var(--panel-2);
+  padding: 10px 14px;
+  border-radius: 6px;
+}
+.metric .label {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.metric .value {
+  margin-top: 2px;
+  font-size: 18px;
+  font-variant-numeric: tabular-nums;
+}

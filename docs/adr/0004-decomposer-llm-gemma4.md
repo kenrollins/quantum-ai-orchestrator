@@ -1,8 +1,12 @@
-# ADR-0004: Gemma 4 31B Q8 as the Decomposer LLM
+# ADR-0004: Gemma 4 31B as the Decomposer LLM
 
-- **Status:** Accepted
+- **Status:** Accepted (model choice still authoritative; runtime/endpoint moved to ADR-0010)
 - **Date:** 2026-04-26
 - **Deciders:** rollik
+
+> **Update (2026-04-26):** ADR-0010 supersedes the *runtime* implied by this
+> ADR (Ollama-on-workstation, q8 quant). The model — Gemma 4 31B-it — is unchanged.
+> Default runtime is now vLLM on xr7620 in bf16; local Ollama remains as fallback.
 
 ## Context
 

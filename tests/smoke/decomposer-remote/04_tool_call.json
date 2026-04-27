@@ -1,0 +1,82 @@
+{
+  "prompt": "I need to assign 12 assets across 8 tasks. Each asset should not handle more than 3 tasks. Use seed 42 for reproducibility. Build the QUBO.",
+  "tool_schema": {
+    "type": "function",
+    "function": {
+      "name": "build_qubo",
+      "description": "Construct a QUBO problem for an asset-to-task assignment.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "assets": {
+            "type": "integer",
+            "description": "Number of assets to assign"
+          },
+          "tasks": {
+            "type": "integer",
+            "description": "Number of tasks to cover"
+          },
+          "capacity": {
+            "type": "integer",
+            "description": "Maximum tasks one asset can take"
+          },
+          "seed": {
+            "type": "integer",
+            "description": "Random seed for reproducibility"
+          }
+        },
+        "required": [
+          "assets",
+          "tasks",
+          "capacity"
+        ]
+      }
+    }
+  },
+  "vllm": {
+    "endpoint": "http://10.0.100.69:8050/v1",
+    "model": "/weights/gemma-4-31B-it",
+    "elapsed_ms": 2038,
+    "finish_reason": "tool_calls",
+    "content": null,
+    "tool_calls": [
+      {
+        "id": "chatcmpl-tool-a1b30ffda0ac3ec0",
+        "type": "function",
+        "name": "build_qubo",
+        "arguments_raw": "{\"assets\": 12, \"capacity\": 3, \"seed\": 42, \"tasks\": 8}",
+        "arguments_parsed": {
+          "assets": 12,
+          "capacity": 3,
+          "seed": 42,
+          "tasks": 8
+        }
+      }
+    ],
+    "tool_call_count": 1,
+    "first_call_args_clean": true
+  },
+  "ollama": {
+    "endpoint": "http://localhost:11434/v1",
+    "model": "gemma4:31b-it-q8_0",
+    "elapsed_ms": 18451,
+    "finish_reason": "tool_calls",
+    "content": "",
+    "tool_calls": [
+      {
+        "id": "call_579z7h50",
+        "type": "function",
+        "name": "build_qubo",
+        "arguments_raw": "{\"assets\":12,\"capacity\":3,\"seed\":42,\"tasks\":8}",
+        "arguments_parsed": {
+          "assets": 12,
+          "capacity": 3,
+          "seed": 42,
+          "tasks": 8
+        }
+      }
+    ],
+    "tool_call_count": 1,
+    "first_call_args_clean": true
+  }
+}

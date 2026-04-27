@@ -1,0 +1,83 @@
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.panel h2 {
+  margin: 0 0 12px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table th {
+  font-weight: 500;
+  color: var(--text-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.row.winner td:first-child {
+  border-left: 3px solid var(--accent);
+  padding-left: 9px;
+}
+
+.row.winner { background: rgba(118, 185, 0, 0.05); }
+.row.failed td { color: var(--text-dim); }
+
+.barTrack {
+  display: inline-block;
+  background: var(--bar-bg);
+  width: 120px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+.bar {
+  display: inline-block;
+  height: 10px;
+  background: var(--accent);
+  border-radius: 2px;
+  vertical-align: middle;
+}
+.bar.bad { background: var(--bad); }
+.bar.warn { background: var(--warn); }
+.bar.dim { background: var(--text-dim); }
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.errorMessage {
+  color: var(--bad);
+  font-size: 12px;
+}
+
+.footer {
+  color: var(--text-dim);
+  font-size: 11px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  margin-top: 16px;
+}

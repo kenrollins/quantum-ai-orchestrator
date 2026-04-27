@@ -29,6 +29,8 @@ from pathlib import Path
 import requests
 
 OLLAMA_URL = "http://localhost:11434"
+VLLM_URL = "http://10.0.100.69:8050"
+VLLM_MODEL = "/weights/gemma-4-31B-it"
 
 # Plan §3 names "gemma4:31b-it-q8_0" as the default and lists kimi-k2.6 /
 # deepseek-r1 / nemotron-3-super as comparators. Of those, only nemotron-3 is
@@ -122,6 +124,36 @@ def call_ollama(model: str, ask: str, timeout: float = 240.0) -> tuple[str, floa
     return r.json()["message"]["content"], dt_s
 
 
+def call_vllm(model: str, ask: str, timeout: float = 240.0) -> tuple[str, float]:
+    """Returns (raw_text, wall_seconds). Uses OpenAI-compatible /v1/chat/completions."""
+    payload = {
+        "model": model,
+        "messages": [
+            {"role": "system", "content": SYSTEM_PROMPT},
+            {"role": "user", "content": ask},
+        ],
+        "temperature": 0.0,
+        "max_tokens": 1024,
+        "response_format": {"type": "json_object"},
+    }
+    t0 = time.perf_counter()
+    r = requests.post(
+        f"{VLLM_URL}/v1/chat/completions",
+        json=payload,
+        timeout=timeout,
+        headers={"Authorization": "Bearer not-needed"},
+    )
+    dt_s = time.perf_counter() - t0
+    r.raise_for_status()
+    return r.json()["choices"][0]["message"]["content"], dt_s
+
+
+def call_endpoint(endpoint: str, model: str, ask: str) -> tuple[str, float]:
+    if endpoint == "vllm":
+        return call_vllm(model, ask)
+    return call_ollama(model, ask)
+
+
 def grade(raw: str, expect_class: str | None) -> dict:
     """Score a single response. Returns dict with json_valid/schema_ok flags."""
     out = {"json_valid": False, "schema_ok": False, "leaf_count": 0, "error": None}
@@ -175,14 +207,15 @@ def grade(raw: str, expect_class: str | None) -> dict:
     return out
 
 
-def bench_model(model: str) -> dict:
-    print(f"\n  {model}")
+def bench_model(model: str, endpoint: str = "ollama") -> dict:
+    label = f"{model} ({endpoint})"
+    print(f"\n  {label}")
     rows = []
     for prompt in PROMPTS:
         ask = prompt["ask"]
         assert ask is not None
         try:
-            raw, dt_s = call_ollama(model, ask)
+            raw, dt_s = call_endpoint(endpoint, model, ask)
             g = grade(raw, prompt["expect_class"])
             print(
                 f"    {prompt['name']:<28}  {dt_s:6.2f}s  "
@@ -210,6 +243,7 @@ def bench_model(model: str) -> dict:
     walls = [r["wall_seconds"] for r in rows if r.get("wall_seconds") is not None]
     return {
         "model": model,
+        "endpoint": endpoint,
         "json_valid_rate": json_rate,
         "schema_ok_rate": schema_rate,
         "median_wall_seconds": stats.median(walls) if walls else None,
@@ -222,16 +256,19 @@ def write_summary(results: list[dict], out_path: Path) -> None:
     lines = [
         "# Decomposer LLM bench",
         "",
-        f"Run on {dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')} UTC against Ollama at {OLLAMA_URL}.",
+        f"Run on {dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')} UTC.",
+        f"Endpoints: Ollama at {OLLAMA_URL}, vLLM at {VLLM_URL}.",
         "",
-        "| model | JSON valid | schema OK | median s | max s |",
-        "|---|---:|---:|---:|---:|",
+        "| model | endpoint | JSON valid | schema OK | median s | max s |",
+        "|---|---|---:|---:|---:|---:|",
     ]
     for r in results:
         med = "-" if r["median_wall_seconds"] is None else f"{r['median_wall_seconds']:.2f}"
         mx = "-" if r["max_wall_seconds"] is None else f"{r['max_wall_seconds']:.2f}"
+        endpoint = r.get("endpoint", "ollama")
         lines.append(
-            f"| `{r['model']}` | {r['json_valid_rate']:.0%} | {r['schema_ok_rate']:.0%} | {med} | {mx} |"
+            f"| `{r['model']}` | {endpoint} | {r['json_valid_rate']:.0%} | "
+            f"{r['schema_ok_rate']:.0%} | {med} | {mx} |"
         )
     lines.append("")
     lines.append("Per-prompt details: see the matching `.json` file.")
@@ -242,23 +279,43 @@ def main() -> int:
     p = argparse.ArgumentParser()
     p.add_argument("--out-dir", default="runs/smoke", type=Path)
     p.add_argument("--models", nargs="*", help="override candidate list")
+    p.add_argument(
+        "--endpoint",
+        choices=["ollama", "vllm", "both"],
+        default="both",
+        help="Which endpoint(s) to bench. 'both' covers Ollama on the workstation "
+             "and vLLM on xr7620 (ADR-0010).",
+    )
     args = p.parse_args()
 
     args.out_dir.mkdir(parents=True, exist_ok=True)
-    available = list_local_models()
-    candidates = args.models or CANDIDATES
-    eligible = [m for m in candidates if m in available]
-    skipped = [m for m in candidates if m not in available]
+    results: list[dict] = []
+    skipped: list[str] = []
 
-    print(f"Ollama models available locally: {len(available)}")
-    if skipped:
-        print(f"Skipping (not pulled): {', '.join(skipped)}")
-    if not eligible:
-        print("No candidate models are local. Pull at least one and retry.")
+    if args.endpoint in ("ollama", "both"):
+        available = list_local_models()
+        candidates = args.models or CANDIDATES
+        eligible = [m for m in candidates if m in available]
+        skipped = [m for m in candidates if m not in available]
+        print(f"Ollama models available locally: {len(available)}")
+        if skipped:
+            print(f"Skipping (not pulled): {', '.join(skipped)}")
+        if eligible:
+            print(f"Benching via Ollama: {', '.join(eligible)}")
+            results.extend(bench_model(m, "ollama") for m in eligible)
+        else:
+            print("No Ollama candidates pulled.")
+
+    if args.endpoint in ("vllm", "both"):
+        print(f"Benching via vLLM at {VLLM_URL}: {VLLM_MODEL}")
+        try:
+            results.append(bench_model(VLLM_MODEL, "vllm"))
+        except Exception as e:
+            print(f"vLLM bench skipped: {e}")
+
+    if not results:
+        print("No models benched.")
         return 2
-
-    print(f"Benching: {', '.join(eligible)}")
-    results = [bench_model(m) for m in eligible]
 
     stamp = dt.datetime.now(dt.timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     json_path = args.out_dir / f"decomposer_bench_{stamp}.json"

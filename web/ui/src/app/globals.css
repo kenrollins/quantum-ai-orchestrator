@@ -1,0 +1,64 @@
+:root {
+  --bg: #0e1116;
+  --panel: #161b22;
+  --panel-2: #1c2129;
+  --border: #2a313c;
+  --text: #d7dde6;
+  --text-dim: #8b95a5;
+  --accent: #76b900;       /* nvidia green */
+  --accent-dim: rgba(118, 185, 0, 0.15);
+  --good: #2ea043;
+  --good-dim: rgba(46, 160, 67, 0.15);
+  --warn: #d29922;
+  --warn-dim: rgba(210, 153, 34, 0.15);
+  --bad: #cf222e;
+  --bad-dim: rgba(207, 34, 46, 0.15);
+  --bar-bg: #2a313c;
+  --gpu0: #4493f8;
+  --gpu0-dim: rgba(68, 147, 248, 0.15);
+  --gpu1: #db61a2;
+  --gpu1-dim: rgba(219, 97, 162, 0.15);
+}
+
+* { box-sizing: border-box; }
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+}
+
+a { color: inherit; text-decoration: none; }
+
+code, pre {
+  font-family: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+}
+
+.pill {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  background: var(--bar-bg);
+  color: var(--text-dim);
+}
+.pill.good { background: var(--good-dim); color: var(--good); }
+.pill.bad  { background: var(--bad-dim);  color: var(--bad); }
+.pill.warn { background: var(--warn-dim); color: var(--warn); }
+.pill.accent { background: var(--accent-dim); color: var(--accent); }
+
+.gpu-pill {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  color: var(--text-dim);
+  background: var(--bar-bg);
+}
+.gpu-pill.gpu0 { color: var(--gpu0); background: var(--gpu0-dim); }
+.gpu-pill.gpu1 { color: var(--gpu1); background: var(--gpu1-dim); }

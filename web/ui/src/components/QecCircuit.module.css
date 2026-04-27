@@ -1,0 +1,50 @@
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+
+.subtitle {
+  color: var(--text-dim);
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.svgWrap {
+  width: 100%;
+  overflow-x: auto;
+  background: #fff;
+  border-radius: 4px;
+  padding: 8px;
+}
+
+.svgWrap object {
+  display: block;
+  min-width: 100%;
+}
+
+.note {
+  color: var(--text-dim);
+  font-size: 11px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+}
