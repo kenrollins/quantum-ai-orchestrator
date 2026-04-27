@@ -1,5 +1,6 @@
 import LearnShell from "../LearnShell";
 import PredecoderPipelineDiagram from "@/components/PredecoderPipelineDiagram";
+import SurfaceCodeWidget from "@/components/SurfaceCodeWidget";
 import styles from "../learn.module.css";
 
 export default function LearnQec() {
@@ -58,14 +59,7 @@ export default function LearnQec() {
         cross that threshold convincingly.
       </p>
 
-      <div className={styles.stub}>
-        <strong>Coming next:</strong> an interactive surface-code lattice you
-        can click — set X or Z errors on data qubits, watch the syndrome light
-        up. Adapted from <a href="https://arthurpesah.me/blog/2023-05-13-surface-code/">Arthur
-        Pesah&apos;s MIT-licensed widget</a>. The point is &ldquo;syndromes
-        only appear at the boundaries of error chains&rdquo; — which is the
-        single observation that makes the decoding problem make sense.
-      </div>
+      <SurfaceCodeWidget distance={5} />
 
       <h2>Decoders</h2>
       <p>
