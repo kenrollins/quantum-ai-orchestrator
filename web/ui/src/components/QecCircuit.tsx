@@ -39,9 +39,14 @@ export default function QecCircuit({ distance, rounds = 1, basis = "X" }: Props)
         </object>
       </div>
       <div className={styles.note}>
-        Rotated surface-code memory circuit, T rounds of stabilizer measurement followed by
-        data-qubit measurement. Generated server-side via{" "}
-        <code>stim.Circuit.generated(&quot;surface_code:rotated_memory_{basis.toLowerCase()}&quot;, ...)</code>.
+        <strong>What this shows.</strong> The actual quantum circuit being decoded — not a
+        cartoon, not a paper figure. Each horizontal line is one qubit; gates flow left to
+        right in time. The dark blocks are <em>stabilizer measurements</em>: they detect
+        errors without disturbing the encoded data. A distance-d code uses d² data qubits
+        arranged in a square lattice (so d=5 means 25 data qubits plus their stabilizers).
+        T rounds of measurement give the decoder a 3D spacetime view of where errors happened.
+        Stim generates this from the same circuit the backends actually decoded, so what you
+        see is what they got.
       </div>
     </div>
   );

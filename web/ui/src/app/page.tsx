@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { fetchHealth } from "@/lib/api";
 import RunList from "@/components/RunList";
@@ -48,8 +49,19 @@ export default function Page() {
           />
           {healthLabel}
         </div>
-        <div className={styles.footnote}>
-          Phase 1 dashboard · post-hoc replay · no QPU · GPUs only
+        <Link
+          href="/learn"
+          style={{
+            marginLeft: "auto",
+            color: "var(--accent)",
+            fontSize: 13,
+            fontWeight: 500,
+          }}
+        >
+          Learn →
+        </Link>
+        <div className={styles.footnote} style={{ marginLeft: 0 }}>
+          Phase 1 · post-hoc replay · no QPU · GPUs only
         </div>
       </header>
 

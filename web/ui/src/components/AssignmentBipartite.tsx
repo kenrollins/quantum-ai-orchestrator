@@ -196,9 +196,14 @@ export default function AssignmentBipartite({ problem, dispatches }: Props) {
         </ReactFlow>
       </div>
       <div className={styles.note}>
-        Edges show the winning assignment from <code>{winner.backend_name}</code>.
-        Edge labels are the cost matrix entry for that (asset, task) pair. Unassigned
-        tasks (red) and unused assets (dim) flag constraint slack.
+        <strong>What this shows.</strong> {numAssets} assets on the left can perform any of{" "}
+        {numTasks} tasks on the right. Each (asset, task) pair has a cost; the goal is to
+        cover every task while minimizing the total. The green arrows are the winning
+        solver&apos;s pick, with the cost-matrix entry as the edge label. Unassigned tasks
+        render red and unused assets dim, so any constraint slack is visible at a glance.
+        This is the classic combinatorial optimization the orchestrator hands to the
+        QAOA / annealing / classical-exact race; same input, three solvers, one chosen
+        assignment.
       </div>
     </div>
   );

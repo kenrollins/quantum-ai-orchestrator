@@ -4,10 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchRun } from "@/lib/api";
 import { fmtMs, fmtTime, shortId } from "@/lib/format";
 import type { DispatchRow, ProblemRow, RunDetail as RunDetailType } from "@/lib/types";
+import AboutRun from "./AboutRun";
 import AssignmentBipartite from "./AssignmentBipartite";
 import BackendBakeoff from "./BackendBakeoff";
 import QecCircuit from "./QecCircuit";
 import QecLerCurve from "./QecLerCurve";
+import Welcome from "./Welcome";
 import styles from "./RunDetail.module.css";
 
 interface Props {
@@ -36,7 +38,7 @@ export default function RunDetail({ runId }: Props) {
   }, [runId]);
 
   if (!runId) {
-    return <div className={styles.empty}>Pick a run from the left rail to inspect its race.</div>;
+    return <Welcome />;
   }
   if (loading && !data) {
     return <div className={styles.empty}>Loading…</div>;
@@ -82,6 +84,8 @@ function ProblemSection({ problem, dispatches }: { problem: ProblemRow; dispatch
 
   return (
     <>
+      <AboutRun problem={problem} dispatches={dispatches} />
+
       <div className={styles.panel}>
         <h2>
           Problem {problem.problem_id} · {problem.problem_class}

@@ -1,0 +1,212 @@
+.shell {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  grid-template-rows: 48px 1fr;
+  grid-template-areas:
+    "header header"
+    "side  main";
+  height: 100vh;
+}
+
+.header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--border);
+}
+.header .title { font-weight: 600; }
+.header .crumb { color: var(--text-dim); font-size: 12px; }
+.header .back { margin-left: auto; color: var(--accent); font-size: 13px; font-weight: 500; }
+
+.side {
+  grid-area: side;
+  background: var(--panel);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 16px 0;
+}
+
+.section {
+  font-size: 11px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 16px;
+  margin-top: 12px;
+}
+
+.tocItem {
+  display: block;
+  padding: 8px 16px;
+  font-size: 13px;
+  color: var(--text);
+  border-left: 3px solid transparent;
+}
+
+.tocItem:hover {
+  background: var(--panel-2);
+  border-left-color: var(--border);
+}
+
+.tocItem.active {
+  background: var(--panel-2);
+  border-left-color: var(--accent);
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.tocItemSub {
+  display: block;
+  padding: 6px 16px 6px 32px;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.tocItemSub:hover { color: var(--text); background: var(--panel-2); }
+
+.main {
+  grid-area: main;
+  overflow-y: auto;
+  padding: 32px 48px;
+}
+
+.article {
+  max-width: 760px;
+  margin: 0 auto;
+  color: var(--text);
+}
+
+.article h1 {
+  font-size: 28px;
+  font-weight: 500;
+  margin: 0 0 4px;
+}
+
+.article .subtitle {
+  color: var(--text-dim);
+  font-size: 15px;
+  margin: 0 0 32px;
+  font-style: italic;
+}
+
+.article h2 {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 32px 0 12px;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.article h3 {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 24px 0 8px;
+  color: var(--accent);
+}
+
+.article p {
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 0 0 14px;
+}
+
+.article ul, .article ol {
+  font-size: 14px;
+  line-height: 1.7;
+  padding-left: 24px;
+}
+
+.article ul li, .article ol li {
+  margin-bottom: 6px;
+}
+
+.article code {
+  font-size: 12.5px;
+  background: var(--panel-2);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+
+.article a {
+  color: var(--accent);
+}
+.article a:hover { text-decoration: underline; }
+
+.article .figure {
+  margin: 20px 0;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.article .caption {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.article .pause {
+  background: var(--panel-2);
+  border-left: 3px solid var(--accent);
+  padding: 12px 16px;
+  margin: 20px 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.article .pause strong {
+  color: var(--accent);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.tocCard {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 12px 0;
+  display: block;
+  color: var(--text);
+}
+
+.tocCard:hover {
+  background: var(--panel-2);
+  border-color: var(--accent);
+}
+
+.tocCard h3 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: var(--accent);
+}
+
+.tocCard p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.stub {
+  background: var(--panel);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  margin: 12px 0;
+  font-size: 13px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.stub strong {
+  color: var(--warn);
+  font-style: normal;
+}

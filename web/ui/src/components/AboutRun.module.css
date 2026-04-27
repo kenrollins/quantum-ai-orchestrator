@@ -1,0 +1,38 @@
+.about {
+  background: linear-gradient(180deg, var(--panel-2) 0%, var(--panel) 100%);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  border-left: 3px solid var(--accent);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.about .label {
+  display: inline-block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.about p {
+  margin: 0;
+  color: var(--text);
+}
+
+.about p + p {
+  margin-top: 8px;
+}
+
+.about strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.about .num {
+  font-variant-numeric: tabular-nums;
+}

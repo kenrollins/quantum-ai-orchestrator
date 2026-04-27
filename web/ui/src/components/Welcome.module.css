@@ -1,0 +1,87 @@
+.welcome {
+  max-width: 760px;
+  margin: 24px auto 0;
+  color: var(--text);
+}
+
+.welcome h1 {
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0 0 4px;
+}
+
+.welcome .tagline {
+  color: var(--text-dim);
+  font-size: 14px;
+  margin: 0 0 20px;
+  font-style: italic;
+}
+
+.welcome p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 14px;
+}
+
+.welcome .twoCol {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0 24px;
+}
+
+.demoCard {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  border-left: 3px solid var(--accent);
+}
+
+.demoCard h3 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+
+.demoCard h4 {
+  font-size: 14px;
+  margin: 0 0 4px;
+  font-weight: 500;
+}
+
+.demoCard p {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 0;
+  color: var(--text-dim);
+}
+
+.cta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: var(--panel-2);
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  margin-top: 16px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.cta a {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.cta a:hover {
+  text-decoration: underline;
+}
+
+.cta .arrow {
+  color: var(--accent);
+}

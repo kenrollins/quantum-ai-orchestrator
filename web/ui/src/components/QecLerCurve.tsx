@@ -157,9 +157,14 @@ export default function QecLerCurve({ distance, rounds, basis }: Props) {
             </ResponsiveContainer>
           </div>
           <div className={styles.note}>
-            Each point is the most recent successful run for that backend at that noise rate.
-            Three decoder lines. Lower is better. The AI predecoder + matching ensemble
-            consistently beats classical MWPM in the model&apos;s training regime (p≈0.003-0.006).
+            <strong>What this shows.</strong> Each line is a decoder. The y-axis is{" "}
+            <em>logical error rate</em> — how often the encoded qubit ends up in the wrong
+            state across many shots. Lower is better. <strong>PyMatching</strong> (blue) is
+            the standard classical decoder used as the comparator everyone publishes against.
+            The two green lines are NVIDIA&apos;s <strong>Ising predecoder</strong> paired
+            with PyMatching as the global cleanup step. The two cooperate: the AI handles
+            easy local errors quickly, PyMatching handles the rest. Each point is the most
+            recent successful run for that backend at that noise rate.
           </div>
         </>
       )}

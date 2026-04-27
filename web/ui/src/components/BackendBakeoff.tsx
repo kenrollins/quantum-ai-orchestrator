@@ -58,8 +58,13 @@ export default function BackendBakeoff({ problem, dispatches }: Props) {
         </tbody>
       </table>
       <footer className={styles.footer}>
-        Race history is recorded in <code>common.dispatches</code> + <code>common.outcomes</code>.
-        Winner is max quality, ties broken by lowest wall time.
+        <strong>What this shows.</strong> Three solvers raced the same problem in parallel.
+        <em> Quality</em> is the solution score on a 0–1 scale (higher is better);
+        <em> wall time</em> is end-to-end including warm-up. The winner is whichever scored
+        highest with a feasible answer, ties broken by lowest wall time. Losing here doesn&apos;t
+        mean the backend is bad — it means the orchestrator now has one more data point about
+        which substrate suits which problem shape. Every dispatch is recorded so the system can
+        learn preferences over time.
       </footer>
     </div>
   );
