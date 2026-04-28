@@ -70,6 +70,61 @@
 .assetNode.unused { color: var(--text-dim); border-left-color: var(--text-dim); opacity: 0.6; }
 .taskNode.unassigned { color: var(--bad); border-right-color: var(--bad); }
 
+.solverLegend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  align-items: center;
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  background: var(--panel-2);
+  border-radius: 6px;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legendRow.legendDimmed {
+  color: var(--text-dim);
+  opacity: 0.7;
+}
+
+.legendRow .swatch {
+  display: inline-block;
+  width: 24px;
+  height: 3px;
+  vertical-align: middle;
+}
+
+.legendNote {
+  color: var(--text-dim);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.toggleButton {
+  margin-left: auto;
+  background: var(--panel);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.toggleButton:hover {
+  background: var(--bar-bg);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 .label {
   font-weight: 500;
   margin-bottom: 2px;
