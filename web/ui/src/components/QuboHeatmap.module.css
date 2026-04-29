@@ -1,0 +1,103 @@
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 16px 0;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.controls label {
+  font-size: 12px;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.controls input[type="number"] {
+  width: 56px;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 6px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 220px;
+  gap: 16px;
+}
+
+.svgWrap {
+  background: var(--panel-2);
+  border-radius: 4px;
+  padding: 10px;
+  overflow: auto;
+}
+
+.svgWrap svg { display: block; width: 100%; height: auto; max-width: 600px; margin: 0 auto; }
+
+.tooltipBox {
+  background: var(--panel-2);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.tooltipBox h4 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+}
+
+.tooltipBox .row {
+  display: flex;
+  justify-content: space-between;
+  font-variant-numeric: tabular-nums;
+  margin: 2px 0;
+}
+
+.tooltipBox .row span:last-child { font-weight: 500; }
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-top: 8px;
+}
+
+.legend .gradient {
+  flex: 1;
+  max-width: 220px;
+  height: 10px;
+  border-radius: 4px;
+  background: linear-gradient(to right, #4493f8, #2a313c, #cf222e);
+}
+
+.legend span { font-variant-numeric: tabular-nums; }
+
+.note {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.5;
+}
